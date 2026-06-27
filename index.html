@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cairn — next action, not the whole mountain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDE7D3;
+    --paper-2:#E4DCC4;
+    --ink:#4A3823;
+    --ink-soft:#7A6647;
+    --teal:#3E7C8C;
+    --amber:#E0922B;
+    --red:#C0432B;
+    --line:#4A3823;
+    --display:"Fraunces",Georgia,serif;
+    --body:"Public Sans",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:0 16px 64px;
+  }
+  .wrap{max-width:680px;margin:0 auto;}
+
+  /* ---------- header ---------- */
+  header{position:relative;padding:34px 0 18px;overflow:hidden;}
+  .contour{position:absolute;top:-40px;right:-30px;width:240px;height:200px;opacity:.13;pointer-events:none;}
+  .brandrow{display:flex;align-items:center;gap:14px;position:relative;}
+  .mark{flex:0 0 auto;}
+  h1{
+    font-family:var(--display);
+    font-weight:900;
+    font-size:clamp(34px,9vw,52px);
+    line-height:.95;
+    margin:0;
+    letter-spacing:-.01em;
+  }
+  .tag{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:8px 0 0;
+  }
+
+  /* ---------- tabs ---------- */
+  nav.tabs{display:flex;gap:0;margin:22px 0 0;border:1px solid var(--line);}
+  nav.tabs button{
+    flex:1;
+    appearance:none;
+    background:transparent;
+    border:0;
+    border-right:1px solid var(--line);
+    padding:11px 8px;
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  nav.tabs button:last-child{border-right:0;}
+  nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);}
+  nav.tabs button:hover:not([aria-selected="true"]){background:var(--paper-2);}
+
+  .panel{display:none;margin-top:22px;}
+  .panel.active{display:block;}
+
+  /* ---------- decide: inputs ---------- */
+  .field{margin:0 0 20px;}
+  .field > .label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .seg{display:flex;flex-wrap:wrap;gap:8px;}
+  .seg button{
+    appearance:none;
+    background:transparent;
+    border:1px solid var(--line);
+    padding:9px 14px;
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--ink);
+    cursor:pointer;
+    min-width:52px;
+  }
+  .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);}
+  .seg button:hover:not([aria-pressed="true"]){background:var(--paper-2);}
+
+  .decide-btn{
+    width:100%;
+    appearance:none;
+    border:1px solid var(--red);
+    background:var(--red);
+    color:var(--paper);
+    font-family:var(--mono);
+    font-weight:600;
+    font-size:18px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    padding:20px;
+    cursor:pointer;
+    margin-top:6px;
+    transition:background .12s linear;
+  }
+  .decide-btn:hover{background:var(--ink);border-color:var(--ink);}
+
+  /* ---------- result card ---------- */
+  .card{border:1px solid var(--line);padding:0;}
+  .card .stripe{height:8px;background:var(--ink);}
+  .card .body{padding:26px 22px 22px;}
+  .verb{
+    font-family:var(--mono);font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;
+  }
+  .act-name{font-family:var(--display);font-weight:900;font-size:clamp(40px,12vw,68px);line-height:.92;margin:0;}
+  .block-line{display:flex;align-items:baseline;gap:10px;margin-top:14px;}
+  .block-mins{font-family:var(--mono);font-weight:600;font-size:34px;}
+  .block-unit{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);}
+  .note{margin-top:14px;font-size:14px;color:var(--ink-soft);border-top:1px solid var(--paper-2);padding-top:12px;}
+  .actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+  .go{
+    flex:1 1 auto;appearance:none;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+    font-family:var(--mono);font-weight:600;font-size:15px;letter-spacing:.18em;text-transform:uppercase;
+    padding:16px;cursor:pointer;min-width:140px;
+  }
+  .go:hover{background:var(--teal);border-color:var(--teal);}
+  .ghost{
+    appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink);
+    font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+    padding:16px 14px;cursor:pointer;
+  }
+  .ghost:hover{background:var(--paper-2);}
+  .ghost:disabled{opacity:.35;cursor:not-allowed;}
+
+  /* ---------- timer ---------- */
+  .timer-wrap{text-align:center;border:1px solid var(--line);padding:30px 20px;}
+  .timer-act{font-family:var(--display);font-weight:600;font-size:24px;margin:0 0 6px;}
+  .clock{font-family:var(--mono);font-weight:500;font-size:clamp(56px,20vw,96px);line-height:1;letter-spacing:.02em;}
+  .timer-actions{display:flex;gap:10px;margin-top:24px;}
+
+  /* ---------- flash ---------- */
+  .flash{
+    border-left:4px solid var(--amber);background:var(--paper-2);
+    padding:12px 14px;margin-top:18px;font-size:14px;
+  }
+
+  /* ---------- calibration ---------- */
+  .stats{display:flex;gap:0;border:1px solid var(--line);margin-bottom:22px;}
+  .stat{flex:1;padding:14px 12px;border-right:1px solid var(--line);text-align:center;}
+  .stat:last-child{border-right:0;}
+  .stat .n{font-family:var(--mono);font-weight:600;font-size:26px;}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px;}
+
+  .barrow{margin-bottom:16px;}
+  .barrow .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;}
+  .barrow .top .nm{font-weight:600;}
+  .barrow .top .pc{font-family:var(--mono);font-size:12px;color:var(--ink-soft);}
+  .track{position:relative;height:22px;border:1px solid var(--line);background:transparent;}
+  .target{position:absolute;top:-1px;bottom:-1px;border-right:2px dashed var(--ink-soft);}
+  .fill{position:absolute;top:0;bottom:0;left:0;}
+  .legend{font-family:var(--mono);font-size:11px;color:var(--ink-soft);letter-spacing:.06em;margin:-4px 0 20px;}
+
+  .logitem{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--paper-2);font-size:14px;}
+  .logitem .lm{font-family:var(--mono);font-size:13px;}
+  .logitem .ld{font-family:var(--mono);font-size:11px;color:var(--ink-soft);}
+  .bailed{color:var(--red);}
+
+  /* ---------- setup ---------- */
+  .srow{border:1px solid var(--line);padding:14px;margin-bottom:12px;}
+  .srow .r1{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+  .srow input[type=text]{
+    flex:1;border:1px solid var(--line);background:var(--paper);padding:9px 10px;
+    font-family:var(--display);font-weight:600;font-size:17px;color:var(--ink);
+  }
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .mini{display:flex;flex-direction:column;gap:4px;}
+  .mini label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);}
+  .mini input,.mini select{
+    border:1px solid var(--line);background:var(--paper);padding:8px;font-family:var(--mono);font-size:13px;color:var(--ink);
+  }
+  .restline{display:flex;align-items:center;gap:8px;margin-top:10px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;}
+  .del{appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink-soft);font-family:var(--mono);font-size:11px;padding:7px 9px;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;}
+  .del:hover{border-color:var(--red);color:var(--red);}
+  .swatch{width:14px;height:14px;border:1px solid var(--ink);flex:0 0 auto;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  .toolbar button{
+    appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:11px 14px;cursor:pointer;
+  }
+  .toolbar button:hover{background:var(--paper-2);}
+  .add{border-color:var(--teal)!important;color:var(--teal)!important;}
+  .hint{font-size:13px;color:var(--ink-soft);margin:16px 0 0;line-height:1.55;}
+
+  footer{margin-top:40px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);letter-spacing:.06em;text-align:center;}
+
+  :focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+  @media (max-width:480px){
+    .stat .n{font-size:21px;}
+    .grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="contour" viewBox="0 0 240 200" aria-hidden="true">
+      <g fill="none" stroke="#4A3823" stroke-width="1.4">
+        <path d="M40 150 C 60 120, 100 118, 130 96 C 160 74, 150 44, 190 36"/>
+        <path d="M30 168 C 58 134, 112 132, 146 104 C 180 76, 172 40, 214 30"/>
+        <path d="M52 138 C 70 116, 96 112, 120 96 C 146 78, 138 56, 168 50"/>
+        <path d="M64 128 C 78 112, 96 108, 112 98 C 130 86, 126 70, 148 66"/>
+      </g>
+    </svg>
+    <div class="brandrow">
+      <svg class="mark" width="46" height="56" viewBox="0 0 46 56" aria-hidden="true">
+        <g fill="none" stroke="#4A3823" stroke-width="2">
+          <path d="M14 50 q9 -6 18 0"/>
+          <path d="M11 40 q12 -8 24 0 q0 6 -12 6 q-12 0 -12 -6Z" fill="#E4DCC4"/>
+          <path d="M14 30 q9 -7 18 0 q0 5 -9 5 q-9 0 -9 -5Z" fill="#E4DCC4"/>
+          <path d="M17 22 q6 -5 12 0 q0 4 -6 4 q-6 0 -6 -4Z" fill="#C0432B" stroke="#C0432B"/>
+          <path d="M19 15 q4 -4 8 0 q0 3 -4 3 q-4 0 -4 -3Z" fill="#E4DCC4"/>
+        </g>
+      </svg>
+      <div>
+        <h1>Cairn</h1>
+      </div>
+    </div>
+    <p class="tag">Next action · not the whole mountain</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="decide">Decide</button>
+    <button role="tab" aria-selected="false" data-tab="calib">Calibration</button>
+    <button role="tab" aria-selected="false" data-tab="setup">Setup</button>
+  </nav>
+
+  <!-- DECIDE -->
+  <section class="panel active" id="panel-decide" role="tabpanel">
+    <div id="decide-idle">
+      <div class="field">
+        <div class="label">Time I’ve actually got</div>
+        <div class="seg" id="avail-seg"></div>
+      </div>
+      <div class="field">
+        <div class="label">Energy right now</div>
+        <div class="seg" id="energy-seg"></div>
+      </div>
+      <button class="decide-btn" id="decide-btn">Decide →</button>
+      <div id="flash-slot"></div>
+    </div>
+
+    <div id="decide-result" style="display:none"></div>
+    <div id="decide-running" style="display:none"></div>
+  </section>
+
+  <!-- CALIBRATION -->
+  <section class="panel" id="panel-calib" role="tabpanel"></section>
+
+  <!-- SETUP -->
+  <section class="panel" id="panel-setup" role="tabpanel">
+    <div id="setup-rows"></div>
+    <div class="toolbar">
+      <button class="add" id="add-act">+ Add activity</button>
+      <button id="export-btn">Export cairn.json</button>
+      <button id="import-btn">Import</button>
+      <input type="file" id="import-file" accept="application/json,.json" style="display:none">
+    </div>
+    <p class="hint">Weights are relative — the calm-moment priorities the sampler draws from. The dashed marker on each calibration bar is your intended share; the filled bar is what you actually did over 7 days. Data lives in your browser and in the JSON you export — commit that file and it’s git-native.</p>
+  </section>
+
+  <footer>Cairn · self-contained · no account · no network</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ---------------- defaults & state ---------------- */
+const PALETTE = {ink:"#4A3823", teal:"#3E7C8C", amber:"#E0922B", red:"#C0432B"};
+const DEFAULTS = {
+  ui:{avail:45, energy:"med"},
+  settings:{maxRerolls:2, K:1.0},
+  activities:[
+    {id:"lift",  name:"Lift",      weight:7, min:30, max:75,  energy:"high", win:[6,21],  rest:false, color:"#C0432B"},
+    {id:"study", name:"Study",     weight:8, min:25, max:90,  energy:"med",  win:[6,23],  rest:false, color:"#3E7C8C"},
+    {id:"deep",  name:"Deep work", weight:6, min:45, max:120, energy:"high", win:[7,22],  rest:false, color:"#E0922B"},
+    {id:"read",  name:"Read",      weight:4, min:15, max:60,  energy:"low",  win:[0,24],  rest:false, color:"#4A3823"},
+    {id:"admin", name:"Admin",     weight:3, min:10, max:45,  energy:"low",  win:[7,22],  rest:false, color:"#7A6647"},
+    {id:"rest",  name:"Rest",      weight:3, min:15, max:60,  energy:"low",  win:[0,24],  rest:true,  color:"#3E7C8C"}
+  ],
+  log:[]
+};
+const LS_KEY = "cairn.v1";
+const RANK = {low:1, med:2, high:3};
+const AVAIL_OPTS = [15,30,45,60,90,120];
+
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function load(){
+  try{ const r = localStorage.getItem(LS_KEY); if(r){ const s = JSON.parse(r); return mergeDefaults(s); } }
+  catch(e){}
+  return clone(DEFAULTS);
+}
+function mergeDefaults(s){
+  const base = clone(DEFAULTS);
+  if(s.activities) base.activities = s.activities;
+  if(s.log) base.log = s.log;
+  if(s.ui) base.ui = Object.assign(base.ui, s.ui);
+  if(s.settings) base.settings = Object.assign(base.settings, s.settings);
+  return base;
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+
+let state = load();
+let view = {mode:"idle", result:null}; // idle | result | running
+
+/* ---------------- helpers ---------------- */
+const $ = (s)=>document.querySelector(s);
+const nowHour = ()=> new Date().getHours();
+const sevenDaysAgo = ()=> Date.now() - 7*86400000;
+const actById = (id)=> state.activities.find(a=>a.id===id);
+
+function inWindow(win, h){
+  const [s,e] = win;
+  return s<=e ? (h>=s && h<e) : (h>=s || h<e);
+}
+function feasible(a, avail, energy, h){
+  if(a.min > avail) return false;
+  if(RANK[energy] < RANK[a.energy]) return false;
+  return inWindow(a.win, h);
+}
+function trailing(){
+  const cut = sevenDaysAgo();
+  const m = {}; let total = 0, blocks = 0, bailed = 0;
+  state.activities.forEach(a=> m[a.id]=0);
+  state.log.forEach(l=>{
+    if(l.ts >= cut){
+      if(l.id in m){ m[l.id]+=l.minutes; total+=l.minutes; }
+      blocks++; if(!l.completed) bailed++;
+    }
+  });
+  return {m, total, blocks, bailed};
+}
+function lastActivityToday(){
+  const d = new Date(); d.setHours(0,0,0,0);
+  const t = d.getTime();
+  let best=null, bestTs=0;
+  state.log.forEach(l=>{ if(l.ts>=t && l.ts>bestTs){ best=l.id; bestTs=l.ts; } });
+  return best;
+}
+
+/* ---------------- the decision ---------------- */
+function decide(excludeId){
+  const {avail, energy} = state.ui;
+  const h = nowHour();
+  const feas = state.activities.filter(a=> feasible(a, avail, energy, h) && a.id !== excludeId);
+  if(feas.length === 0) return null;
+
+  const baseSum = state.activities.reduce((s,a)=>s+Math.max(0,a.weight),0) || 1;
+  const {m, total} = trailing();
+  const lastToday = lastActivityToday();
+
+  const weights = feas.map(a=>{
+    const intended = Math.max(0,a.weight)/baseSum;
+    const actual = total>0 ? m[a.id]/total : 0;
+    let tilt = 1 + state.settings.K * (intended - actual) / Math.max(intended, 1e-6);
+    tilt = Math.min(3, Math.max(0.2, tilt));
+    let w = Math.max(0,a.weight) * tilt;
+    if(a.id === lastToday) w *= 0.6; // gentle nudge against back-to-back repeats
+    return Math.max(0.0001, w);
+  });
+
+  const pick = weightedPick(feas, weights);
+  const block = Math.min(pick.max, avail);
+
+  // why-note
+  const intended = Math.max(0,pick.weight)/baseSum;
+  const actual = total>0 ? m[pick.id]/total : 0;
+  let note;
+  if(pick.rest) note = "Rest counts. Take it without guilt.";
+  else if(total>0 && actual < intended*0.8) note = "You’ve under-done this lately — its odds were raised.";
+  else note = "Drawn from your priorities. Don’t relitigate it.";
+
+  return {actId:pick.id, block, note};
+}
+function weightedPick(items, weights){
+  const sum = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random()*sum;
+  for(let i=0;i<items.length;i++){ r -= weights[i]; if(r<=0) return items[i]; }
+  return items[items.length-1];
+}
+
+/* ---------------- timer ---------------- */
+let timer=null, tStart=0, tDur=0, tActId=null;
+function startBlock(actId, mins){
+  tActId = actId; tDur = mins*60; tStart = Date.now();
+  view.mode = "running"; renderDecide();
+  clearInterval(timer);
+  tick();
+  timer = setInterval(tick, 250);
+}
+function tick(){
+  const elapsed = (Date.now()-tStart)/1000;
+  const remain = Math.max(0, tDur - elapsed);
+  const clk = $("#clock");
+  if(clk) clk.textContent = fmtClock(remain);
+  if(remain <= 0) endBlock(true);
+}
+function fmtClock(sec){
+  const s = Math.round(sec);
+  const m = Math.floor(s/60), r = s%60;
+  return String(m).padStart(2,"0")+":"+String(r).padStart(2,"0");
+}
+function endBlock(completed){
+  clearInterval(timer); timer=null;
+  const mins = Math.max(1, Math.round((Date.now()-tStart)/60000));
+  state.log.push({id:tActId, minutes:mins, ts:Date.now(), completed});
+  save();
+  view.mode = "idle"; view.result = null;
+  renderDecide();
+  flash(completed
+    ? "Logged. Find the next cairn when you’re ready."
+    : "Bailed — and logged honestly. That honesty is what makes the calibration mean anything.");
+  if(currentTab()==="calib") renderCalib();
+}
+
+/* ---------------- flash ---------------- */
+function flash(msg){
+  const slot = $("#flash-slot");
+  if(slot) slot.innerHTML = '<div class="flash">'+esc(msg)+'</div>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------------- render: DECIDE ---------------- */
+function renderAvailSeg(){
+  const seg = $("#avail-seg");
+  seg.innerHTML = AVAIL_OPTS.map(v=>
+    `<button data-avail="${v}" aria-pressed="${v===state.ui.avail}">${v}m</button>`).join("");
+}
+function renderEnergySeg(){
+  const seg = $("#energy-seg");
+  const opts = [["low","Low"],["med","Medium"],["high","High"]];
+  seg.innerHTML = opts.map(([v,l])=>
+    `<button data-energy="${v}" aria-pressed="${v===state.ui.energy}">${l}</button>`).join("");
+}
+function renderDecide(){
+  const idle = $("#decide-idle"), res = $("#decide-result"), run = $("#decide-running");
+  idle.style.display = view.mode==="idle" ? "block" : "none";
+  res.style.display  = view.mode==="result" ? "block" : "none";
+  run.style.display  = view.mode==="running" ? "block" : "none";
+
+  if(view.mode==="idle"){
+    renderAvailSeg(); renderEnergySeg();
+  }
+  if(view.mode==="result" && view.result){
+    const a = actById(view.result.actId);
+    const left = view.result.rerollsLeft;
+    res.innerHTML = `
+      <div class="card">
+        <div class="stripe" style="background:${a.color}"></div>
+        <div class="body">
+          <div class="verb">Do this now</div>
+          <p class="act-name">${esc(a.name)}</p>
+          <div class="block-line">
+            <span class="block-mins">${view.result.block}</span>
+            <span class="block-unit">minutes</span>
+          </div>
+          <div class="note">${esc(view.result.note)}</div>
+          <div class="actions">
+            <button class="go" id="go-btn">Start →</button>
+            <button class="ghost" id="reroll-btn" ${left<=0?"disabled":""}>Reroll · ${left}</button>
+            <button class="ghost" id="back-btn">Back</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  if(view.mode==="running"){
+    const a = actById(tActId);
+    run.innerHTML = `
+      <div class="timer-wrap">
+        <p class="timer-act" style="color:${a.color}">${esc(a.name)}</p>
+        <div class="clock" id="clock">${fmtClock(tDur)}</div>
+        <div class="timer-actions">
+          <button class="go" id="done-btn">Done</button>
+          <button class="ghost" id="bail-btn">Bail</button>
+        </div>
+      </div>`;
+  }
+}
+
+/* ---------------- render: CALIBRATION ---------------- */
+function renderCalib(){
+  const p = $("#panel-calib");
+  const {m, total, blocks, bailed} = trailing();
+  const baseSum = state.activities.reduce((s,a)=>s+Math.max(0,a.weight),0) || 1;
+  const bailRate = blocks>0 ? Math.round(100*bailed/blocks) : 0;
+  const hrs = (total/60);
+
+  let bars = state.activities.map(a=>{
+    const intended = 100*Math.max(0,a.weight)/baseSum;
+    const actual = total>0 ? 100*m[a.id]/total : 0;
+    return `
+      <div class="barrow">
+        <div class="top"><span class="nm">${esc(a.name)}</span>
+          <span class="pc">${actual.toFixed(0)}% · target ${intended.toFixed(0)}%</span></div>
+        <div class="track">
+          <div class="fill" style="width:${actual.toFixed(1)}%;background:${a.color}"></div>
+          <div class="target" style="left:${Math.min(99.5,intended).toFixed(1)}%"></div>
+        </div>
+      </div>`;
+  }).join("");
+
+  const recent = state.log.slice().sort((a,b)=>b.ts-a.ts).slice(0,12).map(l=>{
+    const a = actById(l.id);
+    const nm = a ? a.name : l.id;
+    return `<div class="logitem">
+        <span>${esc(nm)} <span class="lm ${l.completed?"":"bailed"}">· ${l.minutes}m${l.completed?"":" · bailed"}</span></span>
+        <span class="ld">${fmtWhen(l.ts)}</span>
+      </div>`;
+  }).join("") || `<p class="hint">No blocks logged yet. Go decide one.</p>`;
+
+  p.innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="n">${hrs.toFixed(1)}</div><div class="k">hrs · 7d</div></div>
+      <div class="stat"><div class="n">${blocks}</div><div class="k">blocks · 7d</div></div>
+      <div class="stat"><div class="n">${bailRate}%</div><div class="k">bail rate</div></div>
+    </div>
+    <div style="margin-bottom:8px">${bars}</div>
+    <p class="legend">━ filled = actual share · ┊ dashed = intended share</p>
+    <h3 style="font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:24px 0 6px">Recent blocks</h3>
+    ${recent}
+    <div class="toolbar"><button id="clear-log">Clear log</button></div>`;
+}
+function fmtWhen(ts){
+  const d = new Date(ts), now = new Date();
+  const sameDay = d.toDateString()===now.toDateString();
+  const hh = String(d.getHours()).padStart(2,"0"), mm = String(d.getMinutes()).padStart(2,"0");
+  if(sameDay) return "today "+hh+":"+mm;
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  return days[d.getDay()]+" "+hh+":"+mm;
+}
+
+/* ---------------- render: SETUP ---------------- */
+function renderSetup(){
+  const wrap = $("#setup-rows");
+  wrap.innerHTML = state.activities.map((a,i)=>`
+    <div class="srow" data-i="${i}">
+      <div class="r1">
+        <span class="swatch" style="background:${a.color}"></span>
+        <input type="text" data-f="name" value="${esc(a.name)}" />
+        <button class="del" data-del="${i}">Remove</button>
+      </div>
+      <div class="grid">
+        <div class="mini"><label>Weight</label><input type="number" data-f="weight" min="0" max="20" step="1" value="${a.weight}"></div>
+        <div class="mini"><label>Energy</label>
+          <select data-f="energy">
+            <option value="low" ${a.energy==="low"?"selected":""}>Low</option>
+            <option value="med" ${a.energy==="med"?"selected":""}>Medium</option>
+            <option value="high" ${a.energy==="high"?"selected":""}>High</option>
+          </select></div>
+        <div class="mini"><label>Min minutes</label><input type="number" data-f="min" min="5" step="5" value="${a.min}"></div>
+        <div class="mini"><label>Max minutes</label><input type="number" data-f="max" min="5" step="5" value="${a.max}"></div>
+        <div class="mini"><label>From hour</label><input type="number" data-f="win0" min="0" max="24" value="${a.win[0]}"></div>
+        <div class="mini"><label>To hour</label><input type="number" data-f="win1" min="0" max="24" value="${a.win[1]}"></div>
+      </div>
+      <div class="restline">
+        <input type="checkbox" data-f="rest" ${a.rest?"checked":""} id="rest-${i}">
+        <label for="rest-${i}">Counts as rest</label>
+      </div>
+    </div>`).join("");
+}
+
+/* ---------------- tabs ---------------- */
+function currentTab(){ return document.querySelector('nav.tabs button[aria-selected="true"]').dataset.tab; }
+function showTab(name){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===name));
+  $("#panel-decide").classList.toggle("active", name==="decide");
+  $("#panel-calib").classList.toggle("active", name==="calib");
+  $("#panel-setup").classList.toggle("active", name==="setup");
+  if(name==="decide") renderDecide();
+  if(name==="calib") renderCalib();
+  if(name==="setup") renderSetup();
+}
+
+/* ---------------- export / import ---------------- */
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "cairn.json"; document.body.appendChild(a); a.click();
+  a.remove(); URL.revokeObjectURL(url);
+}
+function importJSON(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const incoming = JSON.parse(reader.result);
+      state = mergeDefaults(incoming);
+      save();
+      showTab("setup");
+      flash("Imported.");
+    }catch(e){ alert("That file isn’t valid Cairn JSON."); }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------------- events ---------------- */
+document.querySelectorAll('nav.tabs button').forEach(b=>{
+  b.addEventListener("click", ()=> showTab(b.dataset.tab));
+});
+
+// decide-idle delegation (segments + decide button)
+$("#decide-idle").addEventListener("click", (e)=>{
+  const av = e.target.closest("[data-avail]");
+  if(av){ state.ui.avail = +av.dataset.avail; save(); renderAvailSeg(); return; }
+  const en = e.target.closest("[data-energy]");
+  if(en){ state.ui.energy = en.dataset.energy; save(); renderEnergySeg(); return; }
+  if(e.target.id==="decide-btn"){ runDecision(); }
+});
+function runDecision(){
+  const r = decide(null);
+  $("#flash-slot").innerHTML = "";
+  if(!r){
+    flash("Nothing fits that time + energy + hour. Loosen a constraint in Setup, or pick more time.");
+    return;
+  }
+  view.mode = "result";
+  view.result = {actId:r.actId, block:r.block, note:r.note, rerollsLeft:state.settings.maxRerolls};
+  renderDecide();
+}
+
+// result + running delegation
+$("#decide-result").addEventListener("click",(e)=>{
+  if(e.target.id==="go-btn"){ startBlock(view.result.actId, view.result.block); }
+  else if(e.target.id==="reroll-btn"){
+    if(view.result.rerollsLeft<=0) return;
+    const r = decide(view.result.actId);
+    if(!r){ flash("No other option fits — this is the call."); return; }
+    view.result = {actId:r.actId, block:r.block, note:r.note, rerollsLeft:view.result.rerollsLeft-1};
+    renderDecide();
+  } else if(e.target.id==="back-btn"){
+    view.mode="idle"; view.result=null; renderDecide();
+  }
+});
+$("#decide-running").addEventListener("click",(e)=>{
+  if(e.target.id==="done-btn") endBlock(true);
+  else if(e.target.id==="bail-btn") endBlock(false);
+});
+
+// setup delegation
+$("#setup-rows").addEventListener("input",(e)=>{
+  const row = e.target.closest(".srow"); if(!row) return;
+  const i = +row.dataset.i, f = e.target.dataset.f; if(f==null) return;
+  const a = state.activities[i];
+  if(f==="name") a.name = e.target.value;
+  else if(f==="weight") a.weight = Math.max(0,+e.target.value||0);
+  else if(f==="min") a.min = Math.max(1,+e.target.value||1);
+  else if(f==="max") a.max = Math.max(1,+e.target.value||1);
+  else if(f==="energy") a.energy = e.target.value;
+  else if(f==="win0") a.win[0] = Math.max(0,Math.min(24,+e.target.value||0));
+  else if(f==="win1") a.win[1] = Math.max(0,Math.min(24,+e.target.value||24));
+  else if(f==="rest") a.rest = e.target.checked;
+  save();
+});
+$("#setup-rows").addEventListener("click",(e)=>{
+  const del = e.target.closest("[data-del]");
+  if(del){
+    const i = +del.dataset.del;
+    if(state.activities.length<=1){ alert("Keep at least one activity."); return; }
+    if(confirm("Remove “"+state.activities[i].name+"”?")){
+      state.activities.splice(i,1); save(); renderSetup();
+    }
+  }
+});
+$("#add-act").addEventListener("click",()=>{
+  const id = "act"+Date.now().toString(36);
+  state.activities.push({id, name:"New activity", weight:3, min:20, max:60, energy:"med", win:[0,24], rest:false, color:"#7A6647"});
+  save(); renderSetup();
+  $("#setup-rows").lastElementChild.scrollIntoView({behavior:"smooth", block:"center"});
+});
+$("#export-btn").addEventListener("click", exportJSON);
+$("#import-btn").addEventListener("click", ()=> $("#import-file").click());
+$("#import-file").addEventListener("change",(e)=>{ if(e.target.files[0]) importJSON(e.target.files[0]); });
+
+// calibration delegation (clear log)
+$("#panel-calib").addEventListener("click",(e)=>{
+  if(e.target.id==="clear-log"){
+    if(confirm("Clear the entire block log? This can’t be undone (export first if you want a record).")){
+      state.log = []; save(); renderCalib();
+    }
+  }
+});
+
+// keyboard: space to decide / start (when not typing)
+document.addEventListener("keydown",(e)=>{
+  if(e.code!=="Space") return;
+  const t = e.target.tagName;
+  if(t==="INPUT"||t==="SELECT"||t==="TEXTAREA") return;
+  if(currentTab()!=="decide") return;
+  e.preventDefault();
+  if(view.mode==="idle") runDecision();
+  else if(view.mode==="result") startBlock(view.result.actId, view.result.block);
+});
+
+/* ---------------- init ---------------- */
+renderDecide();
+</script>
+</body>
+</html>
