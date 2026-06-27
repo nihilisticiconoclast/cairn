@@ -4,22 +4,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Cairn — next action, not the whole mountain</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/nihilisticiconoclast/cuddly-lamp@main/assets/tokens.css">
 <style>
   :root{
-    --paper:#EDE7D3;
+    /* cairn-local names → canonical Tunnel tokens */
     --paper-2:#E4DCC4;
-    --ink:#4A3823;
-    --ink-soft:#7A6647;
-    --teal:#3E7C8C;
-    --amber:#E0922B;
-    --red:#C0432B;
-    --line:#4A3823;
-    --display:"Fraunces",Georgia,serif;
-    --body:"Public Sans",system-ui,sans-serif;
-    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --ink-soft:var(--contour);
+    --teal:var(--incident);
+    --red:var(--route);
+    --line:var(--ink);
+    --display:var(--font-display);
+    --body:var(--font-body);
+    --mono:var(--font-data);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -32,11 +29,10 @@
     -webkit-font-smoothing:antialiased;
     padding:0 16px 64px;
   }
-  .wrap{max-width:680px;margin:0 auto;}
+  .wrap{max-width:680px;margin:0 auto;padding:0;}
 
   /* ---------- header ---------- */
-  header{position:relative;padding:34px 0 18px;overflow:hidden;}
-  .contour{position:absolute;top:-40px;right:-30px;width:240px;height:200px;opacity:.13;pointer-events:none;}
+  header{position:relative;padding:34px 0 18px;}
   .brandrow{display:flex;align-items:center;gap:14px;position:relative;}
   .mark{flex:0 0 auto;}
   h1{
@@ -209,7 +205,8 @@
   .add{border-color:var(--teal)!important;color:var(--teal)!important;}
   .hint{font-size:13px;color:var(--ink-soft);margin:16px 0 0;line-height:1.55;}
 
-  footer{margin-top:40px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);letter-spacing:.06em;text-align:center;}
+  footer{margin-top:40px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);letter-spacing:.06em;display:flex;align-items:center;justify-content:center;gap:14px;}
+  footer .sig{width:28px;}
 
   :focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
@@ -222,14 +219,6 @@
 <body>
 <div class="wrap">
   <header>
-    <svg class="contour" viewBox="0 0 240 200" aria-hidden="true">
-      <g fill="none" stroke="#4A3823" stroke-width="1.4">
-        <path d="M40 150 C 60 120, 100 118, 130 96 C 160 74, 150 44, 190 36"/>
-        <path d="M30 168 C 58 134, 112 132, 146 104 C 180 76, 172 40, 214 30"/>
-        <path d="M52 138 C 70 116, 96 112, 120 96 C 146 78, 138 56, 168 50"/>
-        <path d="M64 128 C 78 112, 96 108, 112 98 C 130 86, 126 70, 148 66"/>
-      </g>
-    </svg>
     <div class="brandrow">
       <svg class="mark" width="46" height="56" viewBox="0 0 46 56" aria-hidden="true">
         <g fill="none" stroke="#4A3823" stroke-width="2">
@@ -257,7 +246,7 @@
   <section class="panel active" id="panel-decide" role="tabpanel">
     <div id="decide-idle">
       <div class="field">
-        <div class="label">Time I’ve actually got</div>
+        <div class="label">Time I've actually got</div>
         <div class="seg" id="avail-seg"></div>
       </div>
       <div class="field">
@@ -284,12 +273,18 @@
       <button id="import-btn">Import</button>
       <input type="file" id="import-file" accept="application/json,.json" style="display:none">
     </div>
-    <p class="hint">Weights are relative — the calm-moment priorities the sampler draws from. The dashed marker on each calibration bar is your intended share; the filled bar is what you actually did over 7 days. Data lives in your browser and in the JSON you export — commit that file and it’s git-native.</p>
+    <p class="hint">Weights are relative — the calm-moment priorities the sampler draws from. The dashed marker on each calibration bar is your intended share; the filled bar is what you actually did over 7 days. Data lives in your browser and in the JSON you export — commit that file and it's git-native.</p>
   </section>
 
-  <footer>Cairn · self-contained · no account · no network</footer>
+  <footer>
+    <span class="sig" id="sig"></span>
+    <span>Cairn · self-contained · no account · no network</span>
+  </footer>
 </div>
 
+<div class="doodle" id="doodle"></div>
+
+<script src="https://cdn.jsdelivr.net/gh/nihilisticiconoclast/cuddly-lamp@main/assets/tunnel-figure.js"></script>
 <script>
 "use strict";
 
@@ -395,8 +390,8 @@ function decide(excludeId){
   const actual = total>0 ? m[pick.id]/total : 0;
   let note;
   if(pick.rest) note = "Rest counts. Take it without guilt.";
-  else if(total>0 && actual < intended*0.8) note = "You’ve under-done this lately — its odds were raised.";
-  else note = "Drawn from your priorities. Don’t relitigate it.";
+  else if(total>0 && actual < intended*0.8) note = "You've under-done this lately — its odds were raised.";
+  else note = "Drawn from your priorities. Don't relitigate it.";
 
   return {actId:pick.id, block, note};
 }
@@ -436,7 +431,7 @@ function endBlock(completed){
   view.mode = "idle"; view.result = null;
   renderDecide();
   flash(completed
-    ? "Logged. Find the next cairn when you’re ready."
+    ? "Logged. Find the next cairn when you're ready."
     : "Bailed — and logged honestly. That honesty is what makes the calibration mean anything.");
   if(currentTab()==="calib") renderCalib();
 }
@@ -616,7 +611,7 @@ function importJSON(file){
       save();
       showTab("setup");
       flash("Imported.");
-    }catch(e){ alert("That file isn’t valid Cairn JSON."); }
+    }catch(e){ alert("That file isn't valid Cairn JSON."); }
   };
   reader.readAsText(file);
 }
@@ -721,6 +716,10 @@ document.addEventListener("keydown",(e)=>{
 
 /* ---------------- init ---------------- */
 renderDecide();
+document.getElementById('sig').innerHTML = TunnelFigure.tunnelFigureSVG(null, { variant: 'mark' });
+var _seed = document.title;
+document.getElementById('doodle').innerHTML = TunnelFigure.tunnelFigureSVG(_seed, { variant: 'doodle' });
+TunnelFigure.placeDoodle(document.getElementById('doodle'));
 </script>
 </body>
 </html>
